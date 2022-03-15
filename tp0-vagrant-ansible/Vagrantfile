@@ -1,0 +1,39 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "generic-rocky-ynov"
+
+  config.vm.box_check_update = false
+ # config.ssh.username = "rocky"
+
+  # Désactive les updates auto qui peuvent ralentir le lancement de la machine
+  config.vm.box_check_update = false 
+
+  # Disable guest additions
+  config.vbguest.auto_update = false
+
+  # La ligne suivante permet de désactiver le montage d'un dossier partagé (ne marche pas tout le temps directement suivant vos OS, versions d'OS, etc.)
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+
+  config.vm.provider "virtualbox" do |vb|
+    vb.gui = true
+    vb.memory = "1024"
+  end
+
+  # Config une première VM "admin.tp0.ynov"
+  config.vm.define "admin.tp0.ynov" do |admin|
+    admin.vm.network "private_network", ip: "192.168.56.2"
+  end
+
+  # Config une première VM "node1.tp0.ynov"
+  config.vm.define "node1.tp0.ynov" do |node1|
+    node1.vm.network "private_network", ip: "192.168.56.3"
+  end
+
+  # Config une première VM "node2.tp0.ynov"
+  config.vm.define "node2.tp0.ynov" do |node2|
+    node2.vm.network "private_network", ip: "192.168.56.4"
+  end
+
+end
