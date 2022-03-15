@@ -1,0 +1,5 @@
+- name: Install common packages
+  import_tasks: packages.yml
+
+- name: Create a users attached to ynov group
+  import_tasks: users.yml

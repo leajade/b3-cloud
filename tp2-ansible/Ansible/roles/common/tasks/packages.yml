@@ -1,0 +1,6 @@
+- name: Install common packages
+  become: yes
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ common_packages }}" # ceci permet de boucler sur la liste common_packages

@@ -1,0 +1,40 @@
+#cloud-config
+
+package_update: true
+packages:
+ - git
+
+users:
+ - name: leaduvigneau
+   sudo: ALL=(ALL) NOPASSWD:ALL
+   groups: adm,sys
+   home: /home/lea
+   shell: /bin/bash
+   ssh-authorized-keys:
+    - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC+8IteKPBkpW8xt879HyjoBR2a0mLFFf9JFziUO+B6nXLYjmQgt8hBRNfOhJ2nWDtHMEOJ9/yb694aCNW9vN7gSsZ95OGhc0gS2bVuPPOtnWgOahm0rHCBQhbOU8LfG1TYtzXTonQPEp8mwmkzEKBEmmEg0GTwTpER7VNl7x5O1dLfz5urZb8K2J/Fnxv0rjZoFsZC0AKzvrtRzmRB41hxlYQp584vMEosoIMrT8hrLFCmz2nVfpruZibUKwEU+joNrfVoY7YmguKQD2uA90UgmuPYuvFuCgBw/qD+3C7BXWyG9R6N7wzh5MdCVyzYNZ9Ao/PTg3CM1rH3smuE4acwFsTFtE5cauNJhVuwzNQXNznaOEQATI9Mi7OSiHheu27BgGLyrAhJmbglcKAWfkR3TZY1t7SuG6AK3mXFixwLzyI8pzSVqyS5v8HT3F08eDCCm1xruwTxuWEEqYfezWTkyu7nRYcU40qAIY3bOabjRaeiPms3s5WJk1sFMU4W65U= leaduvigneau@mbp-de-lea.home
+ - name: docker-admin
+   sudo: ALL=(ALL) NOPASSWD:ALL
+   groups: adm,sys,docker
+   home: /home/docker-admin
+   shell: /bin/bash
+   ssh-authorized-keys:
+    - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC+8IteKPBkpW8xt879HyjoBR2a0mLFFf9JFziUO+B6nXLYjmQgt8hBRNfOhJ2nWDtHMEOJ9/yb694aCNW9vN7gSsZ95OGhc0gS2bVuPPOtnWgOahm0rHCBQhbOU8LfG1TYtzXTonQPEp8mwmkzEKBEmmEg0GTwTpER7VNl7x5O1dLfz5urZb8K2J/Fnxv0rjZoFsZC0AKzvrtRzmRB41hxlYQp584vMEosoIMrT8hrLFCmz2nVfpruZibUKwEU+joNrfVoY7YmguKQD2uA90UgmuPYuvFuCgBw/qD+3C7BXWyG9R6N7wzh5MdCVyzYNZ9Ao/PTg3CM1rH3smuE4acwFsTFtE5cauNJhVuwzNQXNznaOEQATI9Mi7OSiHheu27BgGLyrAhJmbglcKAWfkR3TZY1t7SuG6AK3mXFixwLzyI8pzSVqyS5v8HT3F08eDCCm1xruwTxuWEEqYfezWTkyu7nRYcU40qAIY3bOabjRaeiPms3s5WJk1sFMU4W65U= leaduvigneau@mbp-de-lea.home
+ - name: ansible-admin
+   sudo: ALL=(ALL) NOPASSWD:ALL
+   groups: adm,sys,ansible
+   home: /home/ansible-admin
+   shell: /bin/bash
+   ssh-authorized-keys:
+    - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC+8IteKPBkpW8xt879HyjoBR2a0mLFFf9JFziUO+B6nXLYjmQgt8hBRNfOhJ2nWDtHMEOJ9/yb694aCNW9vN7gSsZ95OGhc0gS2bVuPPOtnWgOahm0rHCBQhbOU8LfG1TYtzXTonQPEp8mwmkzEKBEmmEg0GTwTpER7VNl7x5O1dLfz5urZb8K2J/Fnxv0rjZoFsZC0AKzvrtRzmRB41hxlYQp584vMEosoIMrT8hrLFCmz2nVfpruZibUKwEU+joNrfVoY7YmguKQD2uA90UgmuPYuvFuCgBw/qD+3C7BXWyG9R6N7wzh5MdCVyzYNZ9Ao/PTg3CM1rH3smuE4acwFsTFtE5cauNJhVuwzNQXNznaOEQATI9Mi7OSiHheu27BgGLyrAhJmbglcKAWfkR3TZY1t7SuG6AK3mXFixwLzyI8pzSVqyS5v8HT3F08eDCCm1xruwTxuWEEqYfezWTkyu7nRYcU40qAIY3bOabjRaeiPms3s5WJk1sFMU4W65U= leaduvigneau@mbp-de-lea.home
+
+runcmd:
+  - git --version > /tmp/b3_git_version
+  - apt update -y
+  - apt upgrade -y
+  - apt-get install python3.9 -y
+  - apt install docker.io -y
+  - systemctl enable docker.service
+  - systemctl enable containerd.service
+  - apt-get install ntp -y
+  - echo "pool 0.fr.pool.ntp.org" >> /etc/ntp.conf
+  - systemctl restart ntp
