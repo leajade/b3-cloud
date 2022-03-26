@@ -559,30 +559,40 @@ Déployer et ajouter des trucs c'est bien beau, mais comment on fait pour gérer
 
 ➜ **Créez un fichier qui permet de supprimer des Virtual Hosts NGINX**
 
-- renommez le fichier `roles/nginx/tasks/vhosts.yml` en `roles/nginx/tasks/add_vhosts.yml`
-- créez le fichier `roles/nginx/tasks/remove_vhosts.yml` et remplissez le avec le nécessaire pour pouvoir supprimer des vhosts NGINX
-
 ```yaml
-- name: Remove webroot
+➜  tp2-ansible git:(master) ✗ cat Ansible/roles/nginx/tasks/add_vhosts.yml 
+- name: Create webroot
   become: yes
   file:
-    path: "{{ item }}"
-    state: absent
-  with_items: "{{ add_vhost_nginx }}" 
+    path: "{{ add_vhosts['nginx_webroot'] }}"
+    state: directory
 
-- name: Remove index
+- name: Create index
   become: yes
-  file:
-    path: "{{ item }}/index.html"
-    state: absent
-  with_items: "{{ add_vhost_nginx }}" 
+  copy:
+    dest: "{{ add_vhosts['nginx_webroot'] }}/index.html"
+    content: "{{ add_vhosts['nginx_index_content'] }}"
 
 - name: NGINX Virtual Host
   become: yes
+  template:
+    src: vhost.conf.j2
+    dest: /etc/nginx/conf.d/{{ add_vhosts['nginx_servername'] }}.conf
+```
+
+```yaml
+➜  tp2-ansible git:(master) ✗ cat Ansible/roles/nginx/tasks/remove_vhosts.yml 
+- name: Remove index
+  become: yes
   file:
-    path: /etc/nginx/conf.d/{{ nginx_servername }}.conf
+    path: "{{ remove_vhosts['nginx_webroot'] }}/index.html"
     state: absent
 
+- name: Remove NGINX Virtual Host
+  become: yes
+  file: 
+    path: /etc/nginx/conf.d/{{ remove_vhosts['nginx_servername'] }}.conf
+    state: absent
 ```
 
 
@@ -590,8 +600,7 @@ Déployer et ajouter des trucs c'est bien beau, mais comment on fait pour gérer
 - testez que vous pouvez facilement ajouter ou supprimer des Virtual Hosts depuis le fichier `host_vars` d'une machine donnée
 
 ```yaml
-host_vars/node1.tp2.cloud.yml :
-
+➜  tp2-ansible git:(master) ✗ cat Ansible/inventories/vagrant_lab/host_vars/node1.tp2.cloud.yml 
 common_packages:
   - vim
   - git
@@ -607,12 +616,11 @@ remove_vhosts:
   nginx_servername: testnode3
   nginx_port: 8080
   nginx_webroot: /var/www/html/testnode3
-  nginx_index_content: "<h1>teeeeeestnode3</h1>"
+  nginx_index_content: "<h1>teeeeeestnode3</h1>"%
 ```
 
 ```yaml
-host_vars/node2.tp2.cloud.yml :
-
+➜  tp2-ansible git:(master) ✗ cat Ansible/inventories/vagrant_lab/host_vars/node2.tp2.cloud.yml
 common_packages:
   - vim
   - git
@@ -628,7 +636,7 @@ remove_vhosts:
   nginx_servername:
   nginx_port:
   nginx_webroot: 
-  nginx_index_content: 
+  nginx_index_content: %  
 ```
 
 ```bash
