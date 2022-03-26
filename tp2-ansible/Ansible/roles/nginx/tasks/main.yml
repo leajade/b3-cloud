@@ -5,4 +5,7 @@
   import_tasks: config.yml
 
 - name: Deploy VirtualHosts
-  import_tasks: vhosts.yml
+  import_tasks: add_vhosts.yml
+
+- name: Remove VirtualHosts
+  import_tasks: remove_vhosts.yml

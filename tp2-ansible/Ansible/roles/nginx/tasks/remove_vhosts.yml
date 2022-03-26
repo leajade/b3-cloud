@@ -1,0 +1,11 @@
+- name: Remove index
+  become: yes
+  file:
+    path: "{{ remove_vhosts['nginx_webroot'] }}/index.html"
+    state: absent
+
+- name: Remove NGINX Virtual Host
+  become: yes
+  file: 
+    path: /etc/nginx/conf.d/{{ remove_vhosts['nginx_servername'] }}.conf
+    state: absent

@@ -402,6 +402,14 @@ le_ranger:x:1006:1008::/home/le_ranger:/bin/sh
 
 - il doit installer le paquet NGINX
   - je vous laisse gérer :)
+  
+  ```yaml
+  - name: Install NGINX
+    become: yes
+    ansible.builtin.package:
+      name: nginx
+      state: present
+  ```
 
 ➜ **On va y ajouter quelques mécaniques : fichiers et templates :**
 
@@ -490,6 +498,59 @@ nginx_index_content: "<h1>teeeeeest</h1>"
 - ajoutez ce rôle `nginx` au playbook
 - et déployez avec une commande `ansible-playbook`
 
+```bash
+➜  Ansible git:(master) ✗ ansible-playbook -i inventories/vagrant_lab/hosts.ini playbooks/main.yml 
+
+
+PLAY [ynov] ****************************************************************************************************************************************************
+
+TASK [Gathering Facts] *****************************************************************************************************************************************
+ok: [node2.tp2.cloud]
+ok: [node1.tp2.cloud]
+
+TASK [common : Install common packages] ************************************************************************************************************************
+ok: [node2.tp2.cloud] => (item=vim)
+ok: [node1.tp2.cloud] => (item=vim)
+ok: [node2.tp2.cloud] => (item=git)
+ok: [node1.tp2.cloud] => (item=git)
+ok: [node1.tp2.cloud] => (item=rsync)
+
+TASK [common : Create a users attached to ynov group] **********************************************************************************************************
+ok: [node2.tp2.cloud] => (item=le_nain)
+ok: [node1.tp2.cloud] => (item=le_nain)
+ok: [node2.tp2.cloud] => (item=l_elfe)
+ok: [node1.tp2.cloud] => (item=l_elfe)
+ok: [node2.tp2.cloud] => (item=le_ranger)
+ok: [node1.tp2.cloud] => (item=le_ranger)
+
+TASK [nginx : Install NGINX] ***********************************************************************************************************************************
+ok: [node2.tp2.cloud]
+ok: [node1.tp2.cloud]
+
+TASK [nginx : Main NGINX config file] **************************************************************************************************************************
+ok: [node1.tp2.cloud]
+ok: [node2.tp2.cloud]
+
+TASK [nginx : Create webroot] **********************************************************************************************************************************
+ok: [node2.tp2.cloud]
+ok: [node1.tp2.cloud]
+
+TASK [nginx : Create index] ************************************************************************************************************************************
+ok: [node2.tp2.cloud]
+ok: [node1.tp2.cloud]
+
+TASK [nginx : NGINX Virtual Host] ******************************************************************************************************************************
+changed: [node1.tp2.cloud]
+changed: [node2.tp2.cloud]
+
+PLAY RECAP *****************************************************************************************************************************************************
+node1.tp2.cloud            : ok=8    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+node2.tp2.cloud            : ok=8    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+
+```
+
+
+
 ## 5. Gérer la suppression
 
 Déployer et ajouter des trucs c'est bien beau, mais comment on fait pour gérer le changement ?
@@ -500,7 +561,135 @@ Déployer et ajouter des trucs c'est bien beau, mais comment on fait pour gérer
 
 - renommez le fichier `roles/nginx/tasks/vhosts.yml` en `roles/nginx/tasks/add_vhosts.yml`
 - créez le fichier `roles/nginx/tasks/remove_vhosts.yml` et remplissez le avec le nécessaire pour pouvoir supprimer des vhosts NGINX
+
+```yaml
+- name: Remove webroot
+  become: yes
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items: "{{ add_vhost_nginx }}" 
+
+- name: Remove index
+  become: yes
+  file:
+    path: "{{ item }}/index.html"
+    state: absent
+  with_items: "{{ add_vhost_nginx }}" 
+
+- name: NGINX Virtual Host
+  become: yes
+  file:
+    path: /etc/nginx/conf.d/{{ nginx_servername }}.conf
+    state: absent
+
+```
+
+
+
 - testez que vous pouvez facilement ajouter ou supprimer des Virtual Hosts depuis le fichier `host_vars` d'une machine donnée
+
+```yaml
+host_vars/node1.tp2.cloud.yml :
+
+common_packages:
+  - vim
+  - git
+  - rsync
+
+add_vhosts:
+  nginx_servername: testnode3
+  nginx_port: 8080
+  nginx_webroot: /var/www/html/testnode3
+  nginx_index_content: "<h1>teeeeeestnode3</h1>"
+
+remove_vhosts:
+  nginx_servername: testnode3
+  nginx_port: 8080
+  nginx_webroot: /var/www/html/testnode3
+  nginx_index_content: "<h1>teeeeeestnode3</h1>"
+```
+
+```yaml
+host_vars/node2.tp2.cloud.yml :
+
+common_packages:
+  - vim
+  - git
+  - rsync
+
+add_vhosts:
+  nginx_servername: testnode4
+  nginx_port: 8080
+  nginx_webroot: /var/www/html/testnode4
+  nginx_index_content: "<h1>teeeeeestnode4</h1>"
+
+remove_vhosts:
+  nginx_servername:
+  nginx_port:
+  nginx_webroot: 
+  nginx_index_content: 
+```
+
+```bash
+➜  Ansible git:(master) ✗ ansible-playbook -i inventories/vagrant_lab/hosts.ini playbooks/main.yml 
+
+PLAY [ynov] ***************************************************************************************************************************************************************************
+
+TASK [Gathering Facts] ****************************************************************************************************************************************************************
+ok: [node1.tp2.cloud]
+ok: [node2.tp2.cloud]
+
+TASK [common : Install common packages] ***********************************************************************************************************************************************
+ok: [node1.tp2.cloud] => (item=vim)
+ok: [node2.tp2.cloud] => (item=vim)
+ok: [node1.tp2.cloud] => (item=git)
+ok: [node2.tp2.cloud] => (item=git)
+ok: [node1.tp2.cloud] => (item=rsync)
+ok: [node2.tp2.cloud] => (item=rsync)
+
+TASK [common : Create a users attached to ynov group] *********************************************************************************************************************************
+ok: [node1.tp2.cloud] => (item=le_nain)
+ok: [node2.tp2.cloud] => (item=le_nain)
+ok: [node1.tp2.cloud] => (item=l_elfe)
+ok: [node2.tp2.cloud] => (item=l_elfe)
+ok: [node2.tp2.cloud] => (item=le_ranger)
+ok: [node1.tp2.cloud] => (item=le_ranger)
+
+TASK [nginx : Install NGINX] **********************************************************************************************************************************************************
+ok: [node1.tp2.cloud]
+ok: [node2.tp2.cloud]
+
+TASK [nginx : Main NGINX config file] *************************************************************************************************************************************************
+ok: [node2.tp2.cloud]
+ok: [node1.tp2.cloud]
+
+TASK [nginx : Create webroot] *********************************************************************************************************************************************************
+ok: [node2.tp2.cloud]
+ok: [node1.tp2.cloud]
+
+TASK [nginx : Create index] ***********************************************************************************************************************************************************
+ok: [node2.tp2.cloud]
+changed: [node1.tp2.cloud]
+
+TASK [nginx : NGINX Virtual Host] *****************************************************************************************************************************************************
+ok: [node2.tp2.cloud]
+changed: [node1.tp2.cloud]
+
+TASK [nginx : Remove index] ***********************************************************************************************************************************************************
+changed: [node1.tp2.cloud]
+ok: [node2.tp2.cloud]
+
+TASK [nginx : Remove NGINX Virtual Host] **********************************************************************************************************************************************
+changed: [node1.tp2.cloud]
+ok: [node2.tp2.cloud]
+
+PLAY RECAP ****************************************************************************************************************************************************************************
+node1.tp2.cloud            : ok=10   changed=4    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+node2.tp2.cloud            : ok=10   changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+```
+
+
 
 # III. Repeat
 

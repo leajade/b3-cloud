@@ -1,4 +1,4 @@
-- name: Install common packages
+- name: Install NGINX
   become: yes
   ansible.builtin.package:
     name: nginx

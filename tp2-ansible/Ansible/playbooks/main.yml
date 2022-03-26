@@ -1,3 +1,4 @@
 - hosts: ynov
   roles:
     - common
+    - nginx

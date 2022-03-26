@@ -1,0 +1,4 @@
+nginx_servername: test
+nginx_port: 8080
+nginx_webroot: /var/www/html/test
+nginx_index_content: "<h1>teeeeeest</h1>"

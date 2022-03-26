@@ -1,0 +1,17 @@
+- name: Create webroot
+  become: yes
+  file:
+    path: "{{ add_vhosts['nginx_webroot'] }}"
+    state: directory
+
+- name: Create index
+  become: yes
+  copy:
+    dest: "{{ add_vhosts['nginx_webroot'] }}/index.html"
+    content: "{{ add_vhosts['nginx_index_content'] }}"
+
+- name: NGINX Virtual Host
+  become: yes
+  template:
+    src: vhost.conf.j2
+    dest: /etc/nginx/conf.d/{{ add_vhosts['nginx_servername'] }}.conf

@@ -1,0 +1,16 @@
+common_packages:
+  - vim
+  - git
+  - rsync
+
+add_vhosts:
+  nginx_servername: testnode4
+  nginx_port: 8080
+  nginx_webroot: /var/www/html/testnode4
+  nginx_index_content: "<h1>teeeeeestnode4</h1>"
+
+remove_vhosts:
+  nginx_servername:
+  nginx_port:
+  nginx_webroot: 
+  nginx_index_content: 
