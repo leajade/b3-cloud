@@ -849,8 +849,8 @@ remove_vhosts:
   - vous pouvez voir avec un `systemctl status` depuis quand une unité a été redémarrée
 
 ```yaml
-➜  Ansible git:(master) ✗ cat roles/handlers/tasks/main.yml 
-- name: Restart Nginx
+➜  Ansible git:(master) cat roles/nginx/handlers/main.yml 
+- name: Restart nginx
   become: yes
   service:
     name: nginx
@@ -858,13 +858,13 @@ remove_vhosts:
 ```
 
 ```yaml
-➜  Ansible git:(master) ✗ cat roles/nginx/tasks/config.yml
+➜  Ansible git:(master) cat roles/nginx/tasks/config.yml 
 - name : Main NGINX config file
   become: yes
   copy:
     src: nginx.conf # pas besoin de préciser de path, il sait qu'il doit chercher dans le dossier files/
     dest: /etc/nginx/nginx.conf
-  notify: Restart Nginx
+  notify: Restart nginx
 ```
 
 ## 2. Common
