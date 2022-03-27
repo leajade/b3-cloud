@@ -4,13 +4,25 @@ common_packages:
   - rsync
 
 add_vhosts:
-  nginx_servername: testnode4
-  nginx_port: 8080
-  nginx_webroot: /var/www/html/testnode4
-  nginx_index_content: "<h1>teeeeeestnode4</h1>"
+  - test1:
+    nginx_servername: testnode334
+    nginx_port: 8080
+    nginx_webroot: /var/www/html/testnode334
+    nginx_index_content: "<h1>teeeeeestnode3</h1>"
+  - test2:
+    nginx_servername: test234
+    nginx_port: 8081
+    nginx_webroot: /var/www/html/test234
+    nginx_index_content: "<h1>teeeeeest 2</h1>"
+  - test3:
+    nginx_servername: test334
+    nginx_port: 8082
+    nginx_webroot: /var/www/html/test334
+    nginx_index_content: "<h1>teeeeeest 3</h1>"
 
 remove_vhosts:
-  nginx_servername:
-  nginx_port:
-  nginx_webroot: 
-  nginx_index_content: 
+  - test2:
+    nginx_servername: test234
+    nginx_port: 8081
+    nginx_webroot: /var/www/html/test234
+    nginx_index_content: "<h1>teeeeeest 2</h1>"

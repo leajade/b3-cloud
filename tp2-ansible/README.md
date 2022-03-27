@@ -726,7 +726,119 @@ vhosts:
     nginx_index_content: "<h1>teeeeeest 3</h1>"
 ```
 
+----
 
+```yaml
+➜  Ansible git:(master) ✗ cat inventories/vagrant_lab/host_vars/node1.tp2.cloud.yml 
+common_packages:
+  - vim
+  - git
+  - rsync
+
+add_vhosts:
+  - test1:
+    nginx_servername: testnode33
+    nginx_port: 8080
+    nginx_webroot: /var/www/html/testnode33
+    nginx_index_content: "<h1>teeeeeestnode3</h1>"
+  - test2:
+    nginx_servername: test23
+    nginx_port: 8081
+    nginx_webroot: /var/www/html/test23
+    nginx_index_content: "<h1>teeeeeest 2</h1>"
+  - test3:
+    nginx_servername: test33
+    nginx_port: 8082
+    nginx_webroot: /var/www/html/test33
+    nginx_index_content: "<h1>teeeeeest 3</h1>"
+
+remove_vhosts:
+  - test3:
+    nginx_servername: test33
+    nginx_port: 8082
+    nginx_webroot: /var/www/html/test33
+    nginx_index_content: "<h1>teeeeeest 3</h1>"% 
+```
+
+```yaml
+➜  Ansible git:(master) ✗ cat inventories/vagrant_lab/host_vars/node2.tp2.cloud.yml
+common_packages:
+  - vim
+  - git
+  - rsync
+
+add_vhosts:
+  - test1:
+    nginx_servername: testnode334
+    nginx_port: 8080
+    nginx_webroot: /var/www/html/testnode334
+    nginx_index_content: "<h1>teeeeeestnode3</h1>"
+  - test2:
+    nginx_servername: test234
+    nginx_port: 8081
+    nginx_webroot: /var/www/html/test234
+    nginx_index_content: "<h1>teeeeeest 2</h1>"
+  - test3:
+    nginx_servername: test334
+    nginx_port: 8082
+    nginx_webroot: /var/www/html/test334
+    nginx_index_content: "<h1>teeeeeest 3</h1>"
+
+remove_vhosts:
+  - test2:
+    nginx_servername: test234
+    nginx_port: 8081
+    nginx_webroot: /var/www/html/test234
+    nginx_index_content: "<h1>teeeeeest 2</h1>"%   
+```
+
+```yaml
+➜  Ansible git:(master) ✗ cat roles/nginx/tasks/remove_vhosts.yml 
+- name: Remove webroot
+  become: yes
+  file:
+    path: "{{ item.nginx_webroot }}"
+    state: absent
+  with_items: '{{ remove_vhosts }}'
+
+- name: Remove index
+  become: yes
+  file:
+    path: "{{ item.nginx_webroot }}/index.html"
+    state: absent
+  with_items: '{{ remove_vhosts }}'
+
+- name: Remove NGINX Virtual Host
+  become: yes
+  file: 
+    path: /etc/nginx/conf.d/{{ item.nginx_servername }}.conf
+    state: absent
+  with_items: '{{ remove_vhosts }}'
+```
+
+```yaml
+➜  Ansible git:(master) ✗ cat roles/nginx/tasks/add_vhosts.yml 
+- name: Create webroot
+  become: yes
+  file:
+    path: "{{ item.nginx_webroot }}"
+    state: directory
+  with_items: '{{ add_vhosts }}'
+
+- name: Create index
+  become: yes
+  copy:
+    dest: "{{ item.nginx_webroot }}/index.html"
+    content: "{{ item.nginx_index_content }}"
+  with_items: '{{ add_vhosts }}'
+
+- name: NGINX Virtual Host
+  become: yes
+  template:
+    src: vhost.conf.j2
+    dest: /etc/nginx/conf.d/{{ item.nginx_servername }}.conf
+  with_items: '{{ add_vhosts }}'
+```
 
 ➜ **Ajoutez une mécanique de `handlers/`**
 
@@ -735,6 +847,25 @@ vhosts:
 - vous devez trigger un *handler* à chaque fois que la conf NGINX est modifiée
 - vérifiez le bon fonctionnement
   - vous pouvez voir avec un `systemctl status` depuis quand une unité a été redémarrée
+
+```yaml
+➜  Ansible git:(master) ✗ cat roles/handlers/tasks/main.yml 
+- name: Restart Nginx
+  become: yes
+  service:
+    name: nginx
+    state: restarted%  
+```
+
+```yaml
+➜  Ansible git:(master) ✗ cat roles/nginx/tasks/config.yml
+- name : Main NGINX config file
+  become: yes
+  copy:
+    src: nginx.conf # pas besoin de préciser de path, il sait qu'il doit chercher dans le dossier files/
+    dest: /etc/nginx/nginx.conf
+  notify: Restart Nginx
+```
 
 ## 2. Common
 

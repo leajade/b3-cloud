@@ -1,0 +1,6 @@
+- name: Enable UFW
+  import_tasks: enable.yml
+
+- name: UFW Rules
+  import_tasks: rules.yml
+

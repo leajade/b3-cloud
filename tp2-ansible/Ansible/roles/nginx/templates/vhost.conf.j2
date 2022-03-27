@@ -1,9 +1,9 @@
 server {
-        listen {{ nginx_port }} ;
-        server_name {{ nginx_servername }};
+        listen {{ item.nginx_port }} ;
+        server_name {{ item.nginx_servername }};
 
         location / {
-            root {{ nginx_webroot }};
+            root {{ item.nginx_webroot }};
             index index.html;
         }
 }
