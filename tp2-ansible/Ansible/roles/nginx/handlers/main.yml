@@ -1,4 +1,4 @@
-- name: Restart Nginx
+- name: Restart nginx
   become: yes
   service:
     name: nginx
