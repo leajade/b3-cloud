@@ -1,4 +1,28 @@
 users:
-  - le_nain
-  - l_elfe
-  - le_ranger
+  - user1:
+    name: le_nain
+    password: "{{ 'password' | password_hash('sha512', 'password1') }}"
+    home: /home/le_nain
+    key: https://gitlab.com/leajade.keys
+    groups: # Empty by default, here we give it some groups
+      - sudo
+      - admin
+  - user2:
+    name: l_elfe
+    password: "{{ 'password' | password_hash('sha512', 'password2') }}"
+    home: /home/l_elfe
+    key: https://gitlab.com/leajade.keys
+    groups: # Empty by default, here we give it some groups
+      - sudo
+      - admin
+  - user3:
+    name: le_ranger
+    password: "{{ 'password' | password_hash('sha512', 'password3') }}"
+    home: /home/le_ranger
+    key: https://gitlab.com/leajade.keys
+    groups: # Empty by default, here we give it some groups
+      - sudo
+      - admin
+
+
+

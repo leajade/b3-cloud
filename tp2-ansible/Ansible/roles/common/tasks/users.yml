@@ -1,8 +1,19 @@
----
 - name: Create a users attached to ynov group
   become: yes
   ansible.builtin.user:
-    name: "{{ item }}"
-    password: '$6$3/DTh9TPQueax5M0$a/IG6zA4/rBWWBSdzFIKgG53dtJTxabWXVnFVnuVVKv/2UueIAItW4fTb2ZWlwnqVWuHx83RTatCHnVfCYAke.'
+    name: "{{ item.name }}"
+    password: "{{ item.password }}"
+    state: present
+    shell: /bin/bash       # Defaults to /bin/bash
+    system: no             # Defaults to no
+    createhome: yes        # Defaults to yes
+    home: "{{ item.home }}"
+    groups: "{{ item.groups }}"
+  with_items: "{{ users }}" 
+- name: Add public key
+  become: yes
+  ansible.posix.authorized_key:
+    user: "{{ item.name }}"
+    key: "{{ item.key }}"
     state: present
   with_items: "{{ users }}" # ceci permet de boucler sur la liste common_packages

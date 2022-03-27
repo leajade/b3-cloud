@@ -879,6 +879,60 @@ remove_vhosts:
 
 > Toutes ces données doivent être stockées dans les `group_vars`.
 
+```yaml
+➜  tp2-ansible git:(master) ✗ cat Ansible/roles/common/tasks/users.yml 
+- name: Create a users attached to ynov group
+  become: yes
+  ansible.builtin.user:
+    name: "{{ item.name }}"
+    password: "{{ item.password }}"
+    state: present
+    shell: /bin/bash       # Defaults to /bin/bash
+    system: no             # Defaults to no
+    createhome: yes        # Defaults to yes
+    home: "{{ item.home }}"
+    groups: "{{ item.groups }}"
+  with_items: "{{ users }}" 
+- name: Add public key
+  become: yes
+  ansible.posix.authorized_key:
+    user: "{{ item.name }}"
+    key: "{{ item.key }}"
+    state: present
+  with_items: "{{ users }}" # ceci permet de boucler sur la liste common_packages%  
+```
+
+```yaml
+➜  tp2-ansible git:(master) ✗ cat Ansible/inventories/vagrant_lab/group_vars/ynov.yml 
+users:
+  - user1:
+    name: le_nain
+    password: "{{ 'password' | password_hash('sha512', 'password1') }}"
+    home: /home/le_nain
+    key: https://gitlab.com/leajade.keys
+    groups: # Empty by default, here we give it some groups
+      - sudo
+      - admin
+  - user2:
+    name: l_elfe
+    password: "{{ 'password' | password_hash('sha512', 'password2') }}"
+    home: /home/l_elfe
+    key: https://gitlab.com/leajade.keys
+    groups: # Empty by default, here we give it some groups
+      - sudo
+      - admin
+  - user3:
+    name: le_ranger
+    password: "{{ 'password' | password_hash('sha512', 'password3') }}"
+    home: /home/le_ranger
+    key: https://gitlab.com/leajade.keys
+    groups: # Empty by default, here we give it some groups
+      - sudo
+      - admin
+```
+
+
+
 ## 3. Dynamic loadbalancer
 
 ➜  **Créez un nouveau rôle : `webapp`**
