@@ -302,9 +302,181 @@ $ terraform destroy
   - CentOS
   - 1 IP Privée
 
+```hcl
+➜  terraform git:(master) ✗ cat main.tf 
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = ">=3.0.0"
+    }
+  }
+}
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "rg-b3-vm1" {
+  name     = "b3-vm1"
+  location = "eastus"
+}
+
+resource "azurerm_virtual_network" "vn-b3-vm1" {
+  name                = "b3-vm1"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.rg-b3-vm1.location
+  resource_group_name = azurerm_resource_group.rg-b3-vm1.name
+}
+
+resource "azurerm_subnet" "s-b3-vm1" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.rg-b3-vm1.name
+  virtual_network_name = azurerm_virtual_network.vn-b3-vm1.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_public_ip" "ip-public" {
+  name                    = "test-pip"
+  location                = azurerm_resource_group.rg-b3-vm1.location
+  resource_group_name     = azurerm_resource_group.rg-b3-vm1.name
+  allocation_method       = "Dynamic"
+  idle_timeout_in_minutes = 30
+
+  tags = {
+    environment = "test"
+  }
+}
+
+resource "azurerm_network_interface" "nic-b3-vm1" {
+  name                = "example-nic"
+  location            = azurerm_resource_group.rg-b3-vm1.location
+  resource_group_name = azurerm_resource_group.rg-b3-vm1.name
+
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.s-b3-vm1.id
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+
+resource "azurerm_network_interface" "nic-b3-vm2" {
+  name                = "example-nic-vm2"
+  location            = azurerm_resource_group.rg-b3-vm1.location
+  resource_group_name = azurerm_resource_group.rg-b3-vm1.name
+
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.s-b3-vm1.id
+    private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = azurerm_public_ip.ip-public.id
+  }
+}
+
+resource "azurerm_linux_virtual_machine" "vm-b3-vm1" {
+  name                = "node1"
+  resource_group_name = azurerm_resource_group.rg-b3-vm1.name
+  location            = azurerm_resource_group.rg-b3-vm1.location
+  size                = "Standard_B1s"
+  admin_username      = "leaduvigneau"
+  network_interface_ids = [
+    azurerm_network_interface.nic-b3-vm1.id,
+  ]
+
+  admin_ssh_key {
+    username   = "leaduvigneau"
+    public_key = file("~/.ssh/id_rsa.pub")
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "18.04-LTS"
+    version   = "latest"
+  }
+}
+
+resource "azurerm_linux_virtual_machine" "vm-b3-vm2" {
+  name                = "node2"
+  resource_group_name = azurerm_resource_group.rg-b3-vm1.name
+  location            = azurerm_resource_group.rg-b3-vm1.location
+  size                = "Standard_B1s"
+  admin_username      = "leaduvigneau"
+  network_interface_ids = [
+    azurerm_network_interface.nic-b3-vm2.id,
+  ]
+
+  admin_ssh_key {
+    username   = "leaduvigneau"
+    public_key = file("~/.ssh/id_rsa.pub")
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "OpenLogic"
+    offer     = "CentOS"
+    sku       = "7.5"
+    version   = "latest"
+  }
+}
+```
+
+
+
 - les IPs privées doivent permettre aux deux machines de se `ping`
 
 > Pour accéder à `node2`, il faut donc d'abord se connecter à `node1`, et effectuer une connexion SSH vers `node2`. Vous pouvez l'option `-j` de SSH pour faire ~~des dingueries~~ un rebond SSH (`-j` comme Jump). `ssh -j node1 node2` vous connectera à `node2` en passant par `node1`.
+
+```bash
+➜  terraform git:(master) ✗ ssh -J leaduvigneau@20.127.131.210 leaduvigneau@10.0.2.4
+The authenticity of host '20.127.131.210 (20.127.131.210)' can't be established.
+ECDSA key fingerprint is SHA256:vFlEsT6FCZKKs3E81pKgP+wsrhLQ9oaRpSKlLo7CROI.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added '20.127.131.210' (ECDSA) to the list of known hosts.
+The authenticity of host '10.0.2.4 (<no hostip for proxy command>)' can't be established.
+ECDSA key fingerprint is SHA256:HvwH+N3QBNyf6H8T6sQynNukXARcj3uLDmCe7u7aZOs.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added '10.0.2.4' (ECDSA) to the list of known hosts.
+Welcome to Ubuntu 18.04.6 LTS (GNU/Linux 5.4.0-1073-azure x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/advantage
+
+  System information as of Tue Mar 29 15:37:04 UTC 2022
+
+  System load:  0.0               Processes:           108
+  Usage of /:   4.8% of 28.90GB   Users logged in:     0
+  Memory usage: 20%               IP address for eth0: 10.0.2.4
+  Swap usage:   0%
+
+0 updates can be applied immediately.
+
+
+
+The programs included with the Ubuntu system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Ubuntu comes with ABSOLUTELY NO WARRANTY, to the extent permitted by
+applicable law.
+
+To run a command as administrator (user "root"), use "sudo <command>".
+See "man sudo_root" for details.
+
+leaduvigneau@node1:~$ 
+```
+
+
 
 ## 4. Bonus
 
