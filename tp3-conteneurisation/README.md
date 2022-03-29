@@ -133,8 +133,12 @@ Creating a Unix group called docker and adding users to it. When the Docker daem
 
 - modifier le OOM Score du démon Docker à -400
 
-```
-
+```bash
+vagrant@node1:/etc/docker$ sudo dockerd --oom-score-adjust -400
+INFO[2022-03-29T12:58:16.313961092Z] Starting up                                  
+INFO[2022-03-29T12:58:16.315122337Z] detected 127.0.0.53 nameserver, assuming systemd-resolved, so using resolv.conf: /run/systemd/resolve/resolv.conf 
+INFO[2022-03-29T12:58:16.315889785Z] parsed scheme: "unix"   
+...
 ```
 
 - changer le path du dossier qui contient les données (que vous aviez repéré à l'étape précédente)
