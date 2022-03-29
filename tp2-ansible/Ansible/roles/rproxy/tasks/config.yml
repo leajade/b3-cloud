@@ -1,6 +1,11 @@
 - name : Main NGINX config file
-  become: yes
   copy:
     src: nginx.conf # pas besoin de préciser de path, il sait qu'il doit chercher dans le dossier files/
     dest: /etc/nginx/nginx.conf
+  notify: Restart nginx
+  
+- name : rproxy NGINX config file
+  template:
+    src:  proxy.conf.j2
+    dest: /etc/nginx/proxy.conf
   notify: Restart nginx

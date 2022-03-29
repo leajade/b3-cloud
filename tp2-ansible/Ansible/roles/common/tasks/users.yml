@@ -1,5 +1,4 @@
 - name: Create a users attached to ynov group
-  become: yes
   ansible.builtin.user:
     name: "{{ item.name }}"
     password: "{{ item.password }}"
@@ -10,8 +9,8 @@
     home: "{{ item.home }}"
     groups: "{{ item.groups }}"
   with_items: "{{ users }}" 
+  
 - name: Add public key
-  become: yes
   ansible.posix.authorized_key:
     user: "{{ item.name }}"
     key: "{{ item.key }}"

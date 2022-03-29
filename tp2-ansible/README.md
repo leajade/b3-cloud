@@ -943,6 +943,8 @@ users:
 
 > Vraiment, peu importe, une bête page HTML, ou un truc open source comme un NextCloud. Ce qu'on veut, c'est simplement une interface visible.
 
+
+
 ➜  **Créez un nouveau rôle : `rproxy` (pour \*reverse proxy\*)**
 
 - ce rôle déploie un NGINX
@@ -958,6 +960,51 @@ users:
   - si on supprime une machine `webapp`, la conf du reverse proxy se met aussi à jour en fonction
 
 > La configuration de votre loadbalancer devient dynamique, et plus aucune connexion manuelle n'est nécessaire pour ajuster la taille du parc en fonction de la charge.
+
+```yaml
+➜  Ansible git:(master) ✗ cat roles/rproxy/tasks/config.yml 
+- name : Main NGINX config file
+  copy:
+    src: nginx.conf # pas besoin de préciser de path, il sait qu'il doit chercher dans le dossier files/
+    dest: /etc/nginx/nginx.conf
+  notify: Restart nginx
+  
+- name : rproxy NGINX config file
+  template:
+    src:  proxy.conf.j2
+    dest: /etc/nginx/proxy.conf
+  notify: Restart nginx
+
+```
+
+```yaml
+➜  Ansible git:(master) ✗ cat roles/rproxy/tasks/main.yml  
+- name: Install NGINX
+  import_tasks: install.yml
+
+- name: Configure NGINX
+  import_tasks: config.yml%                                                                                                                                                     
+```
+
+```yaml
+➜  Ansible git:(master) ✗ cat roles/rproxy/templates/proxy.conf.j2 
+upstream super_application {
+    {% for host in groups['ynov'] %}
+        server {{ host }}
+    {% endfor %}
+}
+
+server {
+    server_name anyway.com;
+
+    location / {
+        proxy_pass http://super_application;
+        proxy_set_header    Host $host;
+    }
+}
+```
+
+
 
 # IV. Bonus : Aller plus loin
 
@@ -997,3 +1044,6 @@ On peut alors récupérer ces variables dans nos tasks, pour les insérer dans d
 
 - passez sur une CentOS si vous étiez sur une base Debian jusqu'alors
 - ou vice-versa
+
+
+

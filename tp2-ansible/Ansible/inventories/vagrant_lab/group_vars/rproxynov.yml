@@ -1,0 +1,9 @@
+users:
+  - user4:
+    name: le_quentintin
+    password: "{{ 'password' | password_hash('sha512', 'password1') }}"
+    home: /home/le_quentintin
+    key: https://gitlab.com/leajade.keys
+    groups: # Empty by default, here we give it some groups
+      - sudo
+      - admin

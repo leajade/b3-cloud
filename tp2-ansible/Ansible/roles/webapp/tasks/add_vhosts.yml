@@ -1,19 +1,16 @@
 - name: Create webroot
-  become: yes
   file:
     path: "{{ item.nginx_webroot }}"
     state: directory
   with_items: '{{ add_vhosts }}'
 
 - name: Create index
-  become: yes
   copy:
     dest: "{{ item.nginx_webroot }}/index.html"
     content: "{{ item.nginx_index_content }}"
   with_items: '{{ add_vhosts }}'
 
 - name: NGINX Virtual Host
-  become: yes
   template:
     src: vhost.conf.j2
     dest: /etc/nginx/conf.d/{{ item.nginx_servername }}.conf

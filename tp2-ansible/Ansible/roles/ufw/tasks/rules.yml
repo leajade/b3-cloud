@@ -1,5 +1,4 @@
 - name: Allowed ports
-  become: yes
   community.general.ufw:
     rule: "allow"
     port: "{{ item.nginx_port }}"
@@ -7,7 +6,6 @@
   with_items: '{{ add_vhosts }}'
 
 - name: Deny ports
-  become: yes
   community.general.ufw:
     rule: "deny"
     port: "{{ item.nginx_port }}"

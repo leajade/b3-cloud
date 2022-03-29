@@ -1,5 +1,11 @@
 - hosts: ynov
+  become: true
   roles:
     - common
-    - nginx
     - ufw
+    - webapp
+- hosts: rproxynov
+  become: true
+  roles:
+    - common
+    - rproxy

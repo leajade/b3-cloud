@@ -38,3 +38,6 @@ runcmd:
   - apt-get install ntp -y
   - echo "pool 0.fr.pool.ntp.org" >> /etc/ntp.conf
   - systemctl restart ntp
+  - echo "192.168.56.5 node2.tp2.cloud" >> /etc/hosts
+  - echo "192.168.56.4 node1.tp2.cloud" >> /etc/hosts
+  - echo "192.168.56.6 node3.tp2.cloud" >> /etc/hosts

@@ -1,0 +1,14 @@
+upstream super_application {
+    {% for host in groups['ynov'] %}
+        server {{ host }}
+    {% endfor %}
+}
+
+server {
+    server_name anyway.com;
+
+    location / {
+        proxy_pass http://super_application;
+        proxy_set_header    Host $host;
+    }
+}

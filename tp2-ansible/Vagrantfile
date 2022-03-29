@@ -6,8 +6,6 @@ Vagrant.configure("2") do |config|
   config.vm.box = "focal-server-cloudimg-amd64-vagrant"
   config.vm.box_url = "https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64-vagrant.box"
 
-  config.ssh.forward_agent = true
-  
 #  config.vm.provision "shell", path: "setup.sh"
  
   # Config une première VM "admin.tp2.ynov"
@@ -30,7 +28,7 @@ Vagrant.configure("2") do |config|
     end
   end
 
-  # Config une première VM "node2.tp2.cloud"
+  # Config une deuxieme VM "node2.tp2.cloud"
   config.vm.define "node2.tp2.cloud" do |node2|
     node2.vm.network "private_network", ip: "192.168.56.5"
     node2.vm.hostname = "node2.tp2.cloud"
@@ -39,5 +37,15 @@ Vagrant.configure("2") do |config|
       cloud_init.path = "cloud-init-node.yml"
     end
   end
+
+   # Config une troisieme VM "node3.tp2.cloud"
+   config.vm.define "node3.tp2.cloud" do |node3|
+     node3.vm.network "private_network", ip: "192.168.56.6"
+     node3.vm.hostname = "node3.tp2.cloud"
+     node3.vm.cloud_init do |cloud_init|
+       cloud_init.content_type = "text/cloud-config"
+       cloud_init.path = "cloud-init-node.yml"
+     end
+   end
   
 end

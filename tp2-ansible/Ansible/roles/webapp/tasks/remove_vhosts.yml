@@ -1,19 +1,16 @@
 - name: Remove webroot
-  become: yes
   file:
     path: "{{ item.nginx_webroot }}"
     state: absent
   with_items: '{{ remove_vhosts }}'
 
 - name: Remove index
-  become: yes
   file:
     path: "{{ item.nginx_webroot }}/index.html"
     state: absent
   with_items: '{{ remove_vhosts }}'
 
 - name: Remove NGINX Virtual Host
-  become: yes
   file: 
     path: /etc/nginx/conf.d/{{ item.nginx_servername }}.conf
     state: absent

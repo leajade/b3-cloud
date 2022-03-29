@@ -1,0 +1,5 @@
+- name : Main NGINX config file
+  copy:
+    src: nginx.conf # pas besoin de préciser de path, il sait qu'il doit chercher dans le dossier files/
+    dest: /etc/nginx/nginx.conf
+  notify: Restart nginx
