@@ -132,16 +132,16 @@ Creating a Unix group called docker and adding users to it. When the Docker daem
 🌞 **Editer le fichier de configuration du Démon Docker**
 
 - modifier le OOM Score du démon Docker à -400
+- changer le path du dossier qui contient les données (que vous aviez repéré à l'étape précédente)
 
 ```bash
-vagrant@node1:/etc/docker$ sudo dockerd --oom-score-adjust -400
-INFO[2022-03-29T12:58:16.313961092Z] Starting up                                  
-INFO[2022-03-29T12:58:16.315122337Z] detected 127.0.0.53 nameserver, assuming systemd-resolved, so using resolv.conf: /run/systemd/resolve/resolv.conf 
-INFO[2022-03-29T12:58:16.315889785Z] parsed scheme: "unix"   
-...
+vagrant@node1:~$ sudo vi /etc/docker/daemon.json
+vagrant@node1:~$ cat /etc/docker/daemon.json 
+{
+    "oom-score-adjust": -400
+    "data-root": "/var/lib/docker/docker"
+}
 ```
-
-- changer le path du dossier qui contient les données (que vous aviez repéré à l'étape précédente)
 
 📁 **Le fichier `.json` de configuration de Docker**
 
@@ -150,10 +150,43 @@ INFO[2022-03-29T12:58:16.315889785Z] parsed scheme: "unix"
 - utliliser la commande `ps` pour lister les processus de la machine
 - déterminer quel(s) processus sont liés au service Docker
 
+```bash
+vagrant@node1:~$ ps -eF | grep docker
+root       19052       1  0 345478 84076  0 09:55 ?        00:00:00 /usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock
+vagrant    21856   21707  0  2040   724   1 10:26 pts/0    00:00:00 grep --color=auto docker
+```
+
+```
+Le containerd de docker a un PID = 19052 et son PPID est le processus 1. 
+```
+
 🌞 **Analyse les processus liés à chaque conteneur**
 
 - lancer un unique conteneur
 - déterminer quel(s) processus sont liés à ce conteneur spécifique
+
+```bash
+vagrant@node1:~$ docker run -it ubuntu sleep 999
+```
+
+```bash
+vagrant@node1:~$ docker ps
+CONTAINER ID   IMAGE     COMMAND       CREATED          STATUS          PORTS     NAMES
+e96ff8f8cc4e   ubuntu    "sleep 999"   15 seconds ago   Up 14 seconds             inspiring_ramanujan
+```
+
+```bash
+vagrant@node1:~$ ps -eF | grep docker
+root       19052       1  0 363975 82676  0 09:55 ?        00:00:03 /usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock
+vagrant    22228   21707  0 337555 48560  1 10:27 pts/0    00:00:00 docker run -it ubuntu sleep 999
+vagrant    23173   22401  0  2040   656   0 10:36 pts/1    00:00:00 grep --color=auto docker
+```
+
+```
+Le PID de ce container est 22228 et son PPID = 21707
+```
+
+
 
 ## 4. Lancement de conteneurs
 
@@ -187,11 +220,46 @@ $ docker run --name web -d -v /path/to/html:/usr/share/nginx/html -p 8888:80 ngi
   ```
 
   - avec un fichier de conf personnalisé
+  
   - avec un fichier `index.html` personnalisé
+  
   - l'application doit être joignable grâce à un partage de ports
+  
   - vous limiterez l'utilisation de la RAM et du CPU de ce conteneur
+  
   - le conteneur devra avoir un nom
-  - le processus exécuté par le conteneur doit être un utilisateur de votre choix (pas `root`)
+  
+  - le processus exécuté par le conteneur doit être un utilisateur de votre choix (pas `root`) 
+  
+    **-> LOLILOL Léo, comment configurer les droits des fichiers du container à mon user (qui n'est pas root) sans dockerfile ? 🧐**
+
+```bash
+Ici avec le UID de nginx (101) dans mon container (même résultat avec 1000) :
+
+vagrant@node1:~$ sudo docker run --name nginx_web -d -v /data/nginx/index.html:/usr/share/nginx/index.html -v /home/vagrant/default.conf:/etc/nginx/conf.d/default.conf  -u 101 -p 8088:80 --cpus="1.5" -m 6m nginx
+WARNING: Your kernel does not support swap limit capabilities or the cgroup is not mounted. Memory limited without swap.
+933fb4c0c1cadf3fbb97b8410a2c75ce2bdad0030e1611692b1ccf27576d5581
+
+vagrant@node1:~$ docker ps
+CONTAINER ID   IMAGE     COMMAND                  CREATED             STATUS             PORTS                                   NAMES
+4d85ee4f4ac0   nginx     "/docker-entrypoint.…"   46 minutes ago      Up 46 minutes      0.0.0.0:8888->80/tcp, :::8888->80/tcp   webnginx
+66d18dadbb6c   nginx     "/docker-entrypoint.…"   About an hour ago   Up About an hour   0.0.0.0:80->80/tcp, :::80->80/tcp       mynginx1
+```
+
+```bash
+Ici la même commande avec le user root :
+
+vagrant@node1:~$ sudo docker run --name nginx_web_2 -d -v /data/nginx/index.html:/usr/share/nginx/index.html -v /home/vagrant/default.conf:/etc/nginx/conf.d/default.conf  --user="root" -p 8088:80 --cpus="1.5" -m 6m nginx
+WARNING: Your kernel does not support swap limit capabilities or the cgroup is not mounted. Memory limited without swap.
+dff9301705f969889e9109c2768313d6df1eb12f749fc40b684f2a8dfc2a599f
+
+vagrant@node1:~$ docker ps
+CONTAINER ID   IMAGE     COMMAND                  CREATED             STATUS             PORTS                                   NAMES
+dff9301705f9   nginx     "/docker-entrypoint.…"   3 seconds ago       Up 2 seconds       0.0.0.0:8088->80/tcp, :::8088->80/tcp   nginx_web_2
+4d85ee4f4ac0   nginx     "/docker-entrypoint.…"   47 minutes ago      Up 47 minutes      0.0.0.0:8888->80/tcp, :::8888->80/tcp   webnginx
+66d18dadbb6c   nginx     "/docker-entrypoint.…"   About an hour ago   Up About an hour   0.0.0.0:80->80/tcp, :::80->80/tcp       mynginx1
+vagrant@node1:~$ 
+```
 
 > Tout se fait avec des options de la commande `docker run`.
 

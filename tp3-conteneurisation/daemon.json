@@ -1,0 +1,4 @@
+{
+    "oom-score-adjust": -400
+    "data-root": "/var/lib/docker/docker"
+}
