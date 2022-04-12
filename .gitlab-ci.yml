@@ -1,5 +1,6 @@
 stages:
   - ynov_b3
+  - lint
 
 b3_echo_hello:
   stage: ynov_b3
@@ -7,3 +8,10 @@ b3_echo_hello:
   script:
     - cat /etc/os-release
 
+lint-yaml:
+  stage: lint
+  image:
+    name: cytopia/yamllint
+    entrypoint: ["/bin/ash", "-c"]
+  script:
+    - yamllint -f colored .
