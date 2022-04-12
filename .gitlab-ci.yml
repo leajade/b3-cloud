@@ -1,0 +1,9 @@
+stages:
+  - ynov_b3
+
+b3_echo_hello:
+  stage: ynov_b3
+  image: alpine # là
+  script:
+    - cat /etc/os-release
+
