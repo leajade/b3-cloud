@@ -279,13 +279,47 @@ La construction d'image avec Docker est basée sur l'utilisation de fichiers `Do
   - page d'accueil Apache HTML personnalisée
 - plus l'image sera légère, et plus vous aurez de points
 
-📁 **`Dockerfile`**
+```bash
+vagrant@node1:~$ cat Dockerfile 
+# syntax=docker/dockerfile:1
+FROM alpine:3.14
+RUN apk update && apk add apache2
+COPY index.html /var/www/localhost/htdocs
+
+vagrant@node1:~$ cat index.html 
+<!DOCTYPE html>
+<html>
+   <head>
+      <title>Hello</title>
+   </head>
+   <body>
+      <h1>Hello there</h1>
+   </body>
+</html>
+```
+
+
 
 # III. `docker-compose`
 
 ➜ **Installer `docker-compose` sur la machine**
 
-- en suivant [la doc officielle](https://docs.docker.com/compose/install/)
+```bash
+vagrant@node1:~$ DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
+vagrant@node1:~$  mkdir -p $DOCKER_CONFIG/cli-plugins
+vagrant@node1:~$ ls
+Dockerfile  default.conf  index.html
+vagrant@node1:~$ curl -SL https://github.com/docker/compose/releases/download/v2.4.1/docker-compose-linux-x86_64 -o $DOCKER_CONFIG/cli-plugins/docker-compose
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   664  100   664    0     0   3088      0 --:--:-- --:--:-- --:--:--  3088
+100 25.2M  100 25.2M    0     0  2590k      0  0:00:09  0:00:09 --:--:-- 2726k
+vagrant@node1:~$ chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
+vagrant@node1:~$ docker compose version
+Docker Compose version v2.4.1
+```
+
+
 
 `docker-compose` est un outil qui permet de lancer plusieurs conteneurs en une seule commande.
 
@@ -370,6 +404,49 @@ services:
   - vous renseigner dans la doc
 
 📁 **`docker-compose.yml`**
+
+```bash
+vagrant@node1:~$ cat docker-compose.yml 
+version: '3'
+
+services:
+  db:
+    image: mariadb:10.5
+    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
+    restart: always
+    volumes:
+      - db:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=
+    env_file:
+      - db.env
+
+  redis:
+    image: redis:alpine
+    restart: always
+
+  app:
+    image: nextcloud:apache
+    restart: always
+    volumes:
+      - nextcloud:/var/www/html
+    environment:
+      - VIRTUAL_HOST=
+      - LETSENCRYPT_HOST=
+      - LETSENCRYPT_EMAIL=
+      - MYSQL_HOST=db
+      - REDIS_HOST=redis
+    env_file:
+      - db.env
+    depends_on:
+      - db
+      - redis
+    networks:
+      - proxy-tier
+      - default
+```
+
+
 
 # IV. Bonus : Podman et sécurité
 
