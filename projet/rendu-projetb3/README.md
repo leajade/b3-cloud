@@ -1,3 +1,5 @@
+Quentin Demontoux, Malory Bergez-Casalou et Léa Duvigneau
+
 # HelloMouïse.com
 
 ## Kesako ?
